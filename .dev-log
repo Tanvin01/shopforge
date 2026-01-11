@@ -45,3 +45,4 @@
 [2025-12-06T09:00:00] feat: scaffold Next.js e-commerce with Prisma and PostgreSQL
 [2025-12-14T13:45:00] feat: build product catalog with ISR and dynamic routes
 [2026-01-05T14:00:00] feat: integrate Stripe Checkout session with line items
+[2026-01-11T10:30:00] feat: build Stripe webhook handler for order fulfilment
