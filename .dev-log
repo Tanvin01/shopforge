@@ -29,3 +29,5 @@
 [2026-03-08T14:30:00] feat: add wishlist with per-user persistence via Prisma
 
 [2026-04-02T10:00:00] feat: add Resend email for order confirmation receipts
+
+[2026-04-07T14:30:00] perf: implement product image optimisation with Next/Image
