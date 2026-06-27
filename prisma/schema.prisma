@@ -1,0 +1,143 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  PAYMENT_FAILED
+  REFUNDED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  image     String?
+  role      String   @default("CUSTOMER")
+  orders    Order[]
+  wishlist  WishlistItem[]
+  reviews   Review[]
+  createdAt DateTime @default(now())
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  slug     String    @unique
+  image    String?
+  products Product[]
+}
+
+model Product {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  description String     @db.Text
+  price       Float
+  compareAt   Float?
+  stock       Int        @default(0)
+  images      String[]
+  featured    Boolean    @default(false)
+  active      Boolean    @default(true)
+  categoryId  String
+  category    Category   @relation(fields: [categoryId], references: [id])
+  tags        String[]
+  orderItems  OrderItem[]
+  wishlist    WishlistItem[]
+  reviews     Review[]
+  discounts   ProductDiscount[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([categoryId])
+  @@index([slug])
+}
+
+model Order {
+  id                    String      @id @default(cuid())
+  status                OrderStatus @default(PENDING)
+  total                 Float
+  userId                String
+  user                  User        @relation(fields: [userId], references: [id])
+  items                 OrderItem[]
+  stripePaymentIntentId String?
+  discountCode          String?
+  discountAmount        Float?
+  shippingAddress       Json
+  trackingNumber        String?
+  paidAt                DateTime?
+  shippedAt             DateTime?
+  deliveredAt           DateTime?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([userId])
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float
+  variant   String?
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int
+  title     String?
+  body      String   @db.Text
+  verified  Boolean  @default(false)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([productId, userId])
+}
+
+model WishlistItem {
+  id        String  @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@unique([userId, productId])
+}
+
+model Discount {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  type        String    // "PERCENTAGE" | "FIXED"
+  value       Float
+  maxUses     Int?
+  usedCount   Int       @default(0)
+  minAmount   Float?
+  expiresAt   DateTime?
+  active      Boolean   @default(true)
+  products    ProductDiscount[]
+}
+
+model ProductDiscount {
+  product    Product  @relation(fields: [productId], references: [id])
+  productId  String
+  discount   Discount @relation(fields: [discountId], references: [id])
+  discountId String
+
+  @@id([productId, discountId])
+}
